@@ -3,6 +3,8 @@ import { Postagem } from '../model/Postagem';
 import { Tema } from '../model/Tema';
 import { PostagemService } from '../service/postagem.service';
 import { TemaService } from '../service/tema.service';
+import { Router } from '@angular/router';
+import { AlertasService } from '../service/alertas.service';
 
 @Component({
   selector: 'app-feed',
@@ -13,20 +15,33 @@ export class FeedComponent implements OnInit {
 
  key: 'data'
  reverse = true
+ 
   
   postagem: Postagem = new Postagem()
   listaPostagens: Postagem[]
+  titulo: string
 
   tema: Tema = new Tema()
   listaTemas: Tema[]
   idTema: number
+  nomeTema: string
 
   constructor(
     private postagemService: PostagemService,
-    private temaService: TemaService
+    private temaService: TemaService,
+    private router: Router,
+    private alerta: AlertasService
   ) { }
 
   ngOnInit(){
+
+    let token = localStorage.getItem('token')
+
+    if(token == null) {
+      this.router.navigate(['/login'])
+      this.alerta.showAlertInfo('Faça o login antes de entrar no feed...')
+    }
+
     window.scroll(0, 0)
 
     this.findAllPostagens()
@@ -71,5 +86,26 @@ export class FeedComponent implements OnInit {
     })
 
   }
+
+  findByTituloPostagem() {
+    if (this.titulo === ''){
+      this.findAllPostagens()
+    } else {
+      this.postagemService.getByTituloPostagem(this.titulo).subscribe((resp: Postagem[]) => {
+        this.listaPostagens = resp
+      })
+    }
+  }
+ 
+  findByNomeTema() {
+    if (this.nomeTema === ''){
+      this.findAllTemas()
+    } else {
+      this.temaService.getByNomeTema(this.nomeTema).subscribe((resp: Tema[]) => {
+        this.listaTemas = resp
+      })
+    }
+  }
+
 
 }
